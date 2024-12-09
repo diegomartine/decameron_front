@@ -68,7 +68,6 @@ export default {
     redireccion(event) {
       var router = event.target.getAttribute("data-datarouter");
       const ruta = `/${router}`;
-      console.log(ruta);
       this.$router.push(ruta);
     },
   },

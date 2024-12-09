@@ -116,7 +116,9 @@ export default {
     // Obtener la lista de hoteles
     async fetchHotels() {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/hoteles");
+        const response = await axios.get(
+          `${process.env.VUE_APP_SERVICE_API}/hoteles`
+        );
         this.hotels = response.data; // Guardar los hoteles en la lista
       } catch (error) {
         console.error("Error fetching hotels:", error);
@@ -127,7 +129,7 @@ export default {
     async fetchRoomTypes() {
       try {
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/room-types"
+          `${process.env.VUE_APP_SERVICE_API}/room-types`
         );
         this.roomTypes = response.data;
       } catch (error) {
@@ -139,7 +141,7 @@ export default {
     async fetchAccommodations() {
       try {
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/accommodations"
+          `${process.env.VUE_APP_SERVICE_API}/accommodations`
         );
         this.accommodations = response.data;
       } catch (error) {
@@ -149,8 +151,6 @@ export default {
 
     // Crear la habitación
     async createRoom() {
-      console.log("Hotel ID:", this.form.hotel_id); // Verificar si el ID del hotel está correctamente asignado
-
       if (!this.form.hotel_id) {
         this.message = "Por favor, seleccione un hotel.";
         this.messageClass = "alert alert-danger";
@@ -161,41 +161,55 @@ export default {
       }
 
       try {
+        // Realizar la solicitud al backend
         const response = await axios.post(
-          `http://127.0.0.1:8000/api/hoteles/${this.form.hotel_id}/rooms`,
+          `${process.env.VUE_APP_SERVICE_API}/hoteles/${this.form.hotel_id}/rooms`,
           this.form
         );
 
-        console.log(response);
-
-        // Si la creación fue exitosa, mostramos el mensaje de éxito
-        this.message = "Habitación creada exitosamente!";
-        this.messageClass = "alert alert-success";
-        setTimeout(() => {
-          this.message = "";
-        }, 3000); // La alerta desaparecerá después de 3 segundos
-        this.resetForm();
-      } catch (error) {
-        // Verificar si hay un error y si el mensaje de error viene en la propiedad "invalid"
-        if (
-          error.response &&
-          error.response.data &&
-          error.response.data.invalid
-        ) {
-          // Si el error contiene la clave "invalid", mostramos su mensaje
-          this.message = error.response.data.invalid;
+        // Verificar si el mensaje existe en la respuesta
+        if (response.data && response.data.message) {
+          // Mostrar el mensaje del backend como una alerta de éxito
+          this.message = response.data.message;
+          this.messageClass = "alert alert-success";
         } else {
-          // Si no hay un mensaje de error específico, mostramos un mensaje genérico
-          this.message = "Error al crear habitación.";
+          // Mensaje genérico en caso de una respuesta inesperada
+          this.message = "Habitación creada, pero sin mensaje del servidor.";
+          this.messageClass = "alert alert-warning";
         }
 
-        // Establecemos el estilo para el mensaje de error
+        // Limpiar el formulario y ocultar el mensaje después de 3 segundos
+        setTimeout(() => {
+          this.message = "";
+        }, 3000);
+        this.resetForm();
+      } catch (error) {
+        // Manejo de errores en caso de fallos en la solicitud
+        if (error.response && error.response.data) {
+          console.log(error.response.data); // Imprimir la respuesta para depuración
+
+          // Verificar si el error contiene la clave "invalid"
+          if (error.response.data.invalid) {
+            this.message = error.response.data.invalid;
+          } else if (error.response.data.message) {
+            // Usar "message" si está disponible
+            this.message = error.response.data.message;
+          } else {
+            // Mensaje genérico si no hay claves esperadas
+            this.message = "Error desconocido al crear habitación.";
+          }
+        } else {
+          // Mensaje genérico en caso de error sin respuesta estructurada
+          this.message = "Error al crear habitación. Intenta nuevamente.";
+        }
+
+        // Estilo para errores
         this.messageClass = "alert alert-danger";
         setTimeout(() => {
           this.message = "";
-        }, 5000); // La alerta desaparecerá después de 3 segundos
+        }, 5000); // Mostrar el mensaje durante 5 segundos
 
-        // También podemos imprimir el error en la consola para depuración
+        // Imprimir el error en la consola para depuración
         console.error("Error creating room:", error);
       }
     },
@@ -227,13 +241,13 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%); /* Centra el mensaje */
-  z-index: 9999; /* Asegura que la alerta esté encima de otros elementos */
-  width: 80%; /* O cualquier otro valor que se ajuste a tu diseño */
-  max-width: 500px; /* Máxima anchura */
+  z-index: 9999;
+  width: 80%;
+  max-width: 500px;
 }
 
 .message-container .alert {
-  margin: 0; /* Elimina el margen para que se alinee correctamente */
+  margin: 0;
 }
 
 .home {

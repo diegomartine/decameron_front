@@ -111,7 +111,7 @@ export default {
     async createHotel() {
       try {
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/hoteles",
+          `${process.env.VUE_APP_SERVICE_API}/hoteles`,
           this.hotel
         );
 
@@ -139,7 +139,8 @@ export default {
         // Si hay una respuesta del backend con un mensaje de error, lo muestra
         if (error.response && error.response.data) {
           this.message =
-            error.response.data.message || "El nit ingresado ya esta registrado";
+            error.response.data.message ||
+            "El nit ingresado ya esta registrado";
         } else {
           // Si no hay respuesta del servidor o algún otro tipo de error
           this.message =
